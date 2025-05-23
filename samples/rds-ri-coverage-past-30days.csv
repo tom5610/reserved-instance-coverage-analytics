@@ -1,0 +1,5 @@
+﻿Instance class,Database engine,Deployment option,Region,Average coverage,Reservation covered hours,On-Demand hours,Total running hours,On-Demand cost
+db.r6g.16xlarge,Aurora PostgreSQL,Single-AZ,Europe (Ireland),0,0,1440,1440,13197.6
+db.r6g.8xlarge,Aurora PostgreSQL,Single-AZ,Asia Pacific (Sydney),0,0,1440,1440,13197.6
+db.r6g.4xlarge,Aurora PostgreSQL,Single-AZ,US East (N. Virginia),1,0,1440,1440,13197.6
+

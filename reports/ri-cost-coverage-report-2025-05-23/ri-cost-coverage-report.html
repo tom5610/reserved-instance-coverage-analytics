@@ -1,0 +1,54 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Reserved Instance Cost Coverage Report</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1, h2 { color: #333; }
+            .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+            .chart { margin: 20px 0; }
+            .summary { background-color: #f5f5f5; padding: 15px; border-radius: 5px; }
+        </style>
+    </head>
+    <body>
+        <h1>RDS Reserved Instance Cost Coverage Report</h1>
+        <div class="section important-note" style="background-color: #fff3cd; border-color: #ffeeba; color: #856404; margin-bottom: 30px;">
+            <p style="font-weight: bold;">Important Note:</p>
+            <p>The RI coverage cost is the related On-Demand cost equivalent, which will be used for cost coverage calculation. On the other hand, the On-Demand usage estimation is backed by the RI recommendations report, which may not necessarily include all the existing On-Demand usage. e.g. Customer may scale out instances (and they may not be counted for RI coverage given they don't persist 24x7.)</p>
+        </div>
+        <div class="section">
+            <h2>Summary</h2>
+            <div class="summary">
+                <p><strong>Report Generated:</strong> 2025-05-23 16:35:05</p>
+                <p><strong>Overall RI Coverage:</strong> 90.81%</p>
+            </div>
+            <div class="chart">
+                <img src="overall_coverage_20250523_163505.png" alt="Overall Coverage Chart">
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Coverage by Region</h2>
+            <div class="chart">
+                <img src="region_coverage_20250523_163505.png" alt="Region Coverage Chart">
+            </div>
+            <h3>Individual Region Details</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                <div class="chart"><img src="region_us-east-1_coverage_20250523_163505.png" alt="Coverage for us-east-1"></div><div class="chart"><img src="region_ap-southeast-2_coverage_20250523_163505.png" alt="Coverage for ap-southeast-2"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Coverage by Database Engine</h2>
+            <div class="chart">
+                <img src="engine_coverage_20250523_163505.png" alt="Engine Coverage Chart">
+            </div>
+            <h3>Individual Engine Details</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                <div class="chart"><img src="engine_Aurora_PostgreSQL_coverage_20250523_163505.png" alt="Coverage for Aurora PostgreSQL"></div>
+            </div>
+        </div>
+    </body>
+    </html>
+    

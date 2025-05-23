@@ -1,0 +1,297 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{ri_service_type} Reserved Instance Coverage Analysis</title>
+        <style>
+            :root {
+                --primary-color: #0066cc;
+                --secondary-color: #f6f8fa;
+                --border-color: #ddd;
+                --header-bg: #2c3e50;
+                --warning-color: #e74c3c;
+                --success-color: #27ae60;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                color: #333;
+            }
+            
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2em;
+            }
+            
+            h1, h2, h3, h4 {
+                color: var(--header-bg);
+                margin-top: 1.5em;
+                margin-bottom: 0.5em;
+            }
+            
+            h1 { 
+                text-align: center;
+                padding: 1em;
+                background: var(--header-bg);
+                color: white;
+                margin-top: 0;
+            }
+            
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 1.5em 0;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            
+            th, td {
+                border: 1px solid var(--border-color);
+                padding: 12px;
+                text-align: right;
+            }
+            
+            th {
+                background-color: var(--header-bg);
+                color: white;
+                font-weight: 600;
+                text-align: left;
+            }
+            
+            td:first-child {
+                text-align: left;
+            }
+            
+            tr:nth-child(even) {
+                background-color: var(--secondary-color);
+            }
+            
+            tr:hover {
+                background-color: #f0f4f8;
+            }
+            
+            .recommendations {
+                border-left: 4px solid var(--primary-color);
+                padding-left: 1em;
+                margin: 1.5em 0;
+            }
+            
+            .analysis-period {
+                text-align: center;
+                color: #666;
+                margin: 1em 0 2em;
+            }
+            
+            .positive-change {
+                color: var(--warning-color);
+            }
+            
+            .negative-change {
+                color: var(--success-color);
+            }
+            
+            .at-target {
+                color: var(--success-color);
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+    
+
+            <h1>RDS Reserved Instance Coverage Analysis</h1>
+            <div class="analysis-period">
+                Analysis period: 2025-04-20 to 2025-05-19 (30 days)
+            </div>
+    
+
+            <h2>Pivot Table by Region, Database Engine, and Base Instance Size</h2>
+    
+<table border="1" class="dataframe pivot-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>RI covered amount</th>
+      <th>Total amount</th>
+    </tr>
+    <tr>
+      <th>region_code</th>
+      <th>Database engine</th>
+      <th>Base instance size</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>ap-southeast-2</th>
+      <th>Aurora PostgreSQL</th>
+      <th>db.r6g.large</th>
+      <td>0.0</td>
+      <td>32.0</td>
+    </tr>
+    <tr>
+      <th>eu-west-1</th>
+      <th>Aurora PostgreSQL</th>
+      <th>db.r6g.large</th>
+      <td>0.0</td>
+      <td>64.0</td>
+    </tr>
+    <tr>
+      <th>us-east-1</th>
+      <th>Aurora PostgreSQL</th>
+      <th>db.r6g.large</th>
+      <td>16.0</td>
+      <td>16.0</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Coverage Percentage by Region and Instance Size</h2>
+<h3>Region: eu-west-1</h3>
+<h4>Database Engine: Aurora PostgreSQL</h4>
+<table border="1" class="dataframe coverage-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Base Instance Size</th>
+      <th>Total Amount</th>
+      <th>Covered Amount</th>
+      <th>Coverage %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>db.r6g.large</td>
+      <td>64.0</td>
+      <td>0.0</td>
+      <td>0.0%</td>
+    </tr>
+  </tbody>
+</table>
+
+                <div class="recommendations">
+                    <h4>Recommendations for eu-west-1 - Aurora PostgreSQL (Target: 80.0% coverage)</h4>
+            
+<table border="1" class="dataframe recommendations-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Base Instance Size</th>
+      <th>Current Coverage %</th>
+      <th>Covered Amount</th>
+      <th>Current Total</th>
+      <th>Required Change</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>db.r6g.large</td>
+      <td>0.0%</td>
+      <td>0.0</td>
+      <td>64.0</td>
+      <td><span class="positive-change">+51.20</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3>Region: ap-southeast-2</h3>
+<h4>Database Engine: Aurora PostgreSQL</h4>
+<table border="1" class="dataframe coverage-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Base Instance Size</th>
+      <th>Total Amount</th>
+      <th>Covered Amount</th>
+      <th>Coverage %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>db.r6g.large</td>
+      <td>32.0</td>
+      <td>0.0</td>
+      <td>0.0%</td>
+    </tr>
+  </tbody>
+</table>
+
+                <div class="recommendations">
+                    <h4>Recommendations for ap-southeast-2 - Aurora PostgreSQL (Target: 80.0% coverage)</h4>
+            
+<table border="1" class="dataframe recommendations-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Base Instance Size</th>
+      <th>Current Coverage %</th>
+      <th>Covered Amount</th>
+      <th>Current Total</th>
+      <th>Required Change</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>db.r6g.large</td>
+      <td>0.0%</td>
+      <td>0.0</td>
+      <td>32.0</td>
+      <td><span class="positive-change">+25.60</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3>Region: us-east-1</h3>
+<h4>Database Engine: Aurora PostgreSQL</h4>
+<table border="1" class="dataframe coverage-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Base Instance Size</th>
+      <th>Total Amount</th>
+      <th>Covered Amount</th>
+      <th>Coverage %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>db.r6g.large</td>
+      <td>16.0</td>
+      <td>16.0</td>
+      <td>100.0%</td>
+    </tr>
+  </tbody>
+</table>
+
+                <div class="recommendations">
+                    <h4>Recommendations for us-east-1 - Aurora PostgreSQL (Target: 80.0% coverage)</h4>
+            
+<table border="1" class="dataframe recommendations-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Base Instance Size</th>
+      <th>Current Coverage %</th>
+      <th>Covered Amount</th>
+      <th>Current Total</th>
+      <th>Required Change</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>db.r6g.large</td>
+      <td>100.0%</td>
+      <td>16.0</td>
+      <td>16.0</td>
+      <td><span class="negative-change">-3.20</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+        </div>
+    </body>
+    </html>
+    

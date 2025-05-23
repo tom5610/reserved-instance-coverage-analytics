@@ -1,0 +1,31 @@
+[project]
+name = "reserved-instance-coverage"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "pydantic==2.9.2",
+    "python-dotenv==1.0.1",
+    "rich==13.5.2",
+    "numpy==1.23.5",
+    "pandas",
+    "typer",
+    "beautifulsoup4",
+    "requests",
+    "html2text",
+    "selenium",
+    "webdriver-manager",
+    "matplotlib",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+packages = ["src/ri_coverage_analytics"]
+
+[project.scripts]
+main = "ri_coverage_analytics.main:main"
