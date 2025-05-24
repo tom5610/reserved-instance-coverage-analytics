@@ -1,5 +1,5 @@
 [project]
-name = "reserved-instance-coverage"
+name = "reserved-instance-coverage-analytics"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
