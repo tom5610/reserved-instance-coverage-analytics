@@ -277,11 +277,12 @@ def analyze_cost_coverage(
     # Add RegionCode column to recommendations dataframe if not empty
     if not recommendations_df.empty:
         recommendations_df['RegionCode'] = recommendations_df['Region'].apply(get_region_name_code_mapping)
+        # consolidate 30 on-demand cost equivalent.
         recommendations_df['On-Demand cost equivalent'] = (
-            recommendations_df['Upfront cost'] + 
+            recommendations_df['Upfront cost'] / (12 * int(recommendations_df['Term'])) + 
             recommendations_df['Recurring monthly cost'] + 
             recommendations_df['Estimated savings']
-        )
+        ) * 12 / 365 * 30
     else:
         recommendations_df['RegionCode'] = pd.Series(dtype='str')
         recommendations_df['On-Demand cost equivalent'] = pd.Series(dtype='float64')
