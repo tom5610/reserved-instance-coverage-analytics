@@ -127,8 +127,10 @@ def analyze_target_coverage(
             base_sizes.append(row['Instance class'])
             size_factors.append(1.0)
         
-        # Calculate Total amount
+        # Calculate Total amount (double for Multi-AZ deployments)
         total_amount = est_instance_amount * size_factor
+        if row['Deployment option'] == 'Multi-AZ':
+            total_amount *= 2
         total_amounts.append(total_amount)
         
         # Calculate RI covered amount
