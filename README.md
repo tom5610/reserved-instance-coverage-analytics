@@ -1,5 +1,7 @@
 # Amazon Reserved Instance Coverage Analytics
 
+> **⚠️ DISCLAIMER**: This tool provides analysis and recommendations for AWS Reserved Instance (RI) purchases. While we strive for accuracy, users should carefully verify all recommendations before making any RI purchase decisions. You are responsible for your own RI purchase decisions and their financial implications. Always review AWS documentation and consult with your finance team before making RI commitments.
+
 A command-line tool for analyzing AWS Reserved Instance (RI) coverage based on AWS Cost Explorer reports.
 
 > At the moment, only RDS Reserved Instances analysis is supported.
