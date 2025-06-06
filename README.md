@@ -91,7 +91,7 @@ Analyzes RI coverage from per existing coverage report and provide guidance on w
 
 
 ```bash
-uv run main ri-coverage-analytics analyze-target-coverage \
+uv run main analyze-target-coverage \
     ./samples/rds-ri-coverage-past-30days.csv \
     --start-date 2025-01-01 \
     --end-date 2025-01-31 \

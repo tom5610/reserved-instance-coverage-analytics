@@ -218,24 +218,6 @@ def analyze_cost_coverage(
     - Visual reports including pie charts and bar graphs
     - Detailed HTML report in the reports/ri-cost-coverage-report-YYYY-MM-DD directory
     
-    Example usage:
-        # Basic usage with both reports
-        ri-coverage-analytics analyze-cost-coverage \
-            --recommendations-report recommendations.csv \
-            --utilization-report utilization.csv
-        
-        # Analyze EC2 RIs with custom period
-        ri-coverage-analytics analyze-cost-coverage \
-            --recommendations-report ec2_recommendations.csv \
-            --utilization-report ec2_utilization.csv \
-            --days 90 \
-            --ri-service-type EC2
-        
-        # Analyze only utilization (no recommendations)
-        ri-coverage-analytics analyze-cost-coverage \
-            --utilization-report utilization.csv \
-            --ri-service-type RDS
-    
     Args:
         recommendations_report: Optional CSV file containing RI recommendations
         utilization_report: Optional CSV file showing current RI utilization
@@ -281,7 +263,7 @@ def analyze_cost_coverage(
         recommendations_df['RegionCode'] = recommendations_df['Region'].apply(get_region_name_code_mapping)
         # consolidate 30 on-demand cost equivalent.
         recommendations_df['On-Demand cost equivalent'] = (
-            recommendations_df['Upfront cost'] / (12 * int(recommendations_df['Term'])) + 
+            recommendations_df['Upfront cost'] / (12 * recommendations_df['Term'].astype(int)) + 
             recommendations_df['Recurring monthly cost'] + 
             recommendations_df['Estimated savings']
         ) * 12 / 365 * 30
