@@ -4,6 +4,8 @@
 
 A command-line tool for analyzing Amazon RDS Reserved Instance (RI) coverage based on AWS Cost Explorer reports.
 
+Besides the README.md, you may find more guidance on the blog - [Cost Coverage Analysis for Amazon RDS Reserved Instances](https://medium.com/p/c7fe13009eba)
+
 ## Overview
 
 This CLI tool helps AWS users analyze their Reserved Instance (RI) coverage for various AWS services like RDS and EC2. It processes CSV reports from AWS Cost Explorer and provides detailed insights into RI coverage and cost metrics across different regions and instance types.
