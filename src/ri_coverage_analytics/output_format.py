@@ -274,6 +274,14 @@ def output_to_html(
     # Add coverage percentage by region and instance size
     html_parts.append("<h2>Coverage Percentage by Region and Instance Size</h2>")
     
+    # Add clarification for the 'Required Change' column
+    html_parts.append("""
+        <div style="margin: 1em 0; padding: 0.8em; background-color: #f8f9fa; border-left: 4px solid #6c757d; font-size: 0.95em;">
+            <p><strong>Note about 'Required Change' column:</strong> Positive values indicate the number of instances to <em>purchase</em> to reach the target coverage. 
+            Negative values indicate instances that can be <em>reduced</em> when Reserved Instances are due for renewal.</p>
+        </div>
+    """)
+    
     for region in unique_regions:
         html_parts.append(f"<h3>Region: {region}</h3>")
         region_data = detailed_coverage.loc[region]
