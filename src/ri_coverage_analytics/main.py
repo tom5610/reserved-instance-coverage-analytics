@@ -6,12 +6,16 @@ from rich.console import Console
 from rich.markdown import Markdown
 import io
 import matplotlib.pyplot as plt
-from pydantic import BaseModel
-from typing import Dict
+
+# Import internal modules
+from ri_coverage_analytics.config import config
 from ri_coverage_analytics.output_format import output_to_console, output_to_html
 from ri_coverage_analytics.reference_doc_transformer import transform
-
-from ri_coverage_analytics.utils import calculate_days, convert_instance_class, get_region_name_code_mapping
+from ri_coverage_analytics.data_processor import (
+    process_instance_data, 
+    calculate_coverage_metrics
+)
+from ri_coverage_analytics.coverage_report import output_picture_format
 
 app = typer.Typer()
 console = Console()
@@ -21,11 +25,15 @@ def analyze_target_coverage(
     csv_path: Path = typer.Argument(..., help="Path to the CSV file with RDS instance data"),
     start_date: str = typer.Option(..., help="Start date in format YYYY-MM-DD"),
     end_date: str = typer.Option(..., help="End date in format YYYY-MM-DD"),
-    target_coverage: float = typer.Option(80.0, help="Target coverage percentage (default: 80%)"),
-    ri_service_type: str = typer.Option("RDS", help="Type of Reserved Instance (default: RDS)")
+    target_coverage: float = typer.Option(
+        config.default_target_coverage, 
+        help=f"Target coverage percentage (default: {config.default_target_coverage}%)"
+    ),
+    ri_service_type: str = typer.Option(
+        config.default_ri_service_type, 
+        help=f"Type of Reserved Instance (default: {config.default_ri_service_type})"
+    )
 ):
-    
-
     """
     Analyze Reserved Instance coverage and provide recommendations to reach target coverage.
 
@@ -47,7 +55,7 @@ def analyze_target_coverage(
     - HTML report in the reports/ri-target-coverage-report-YYYY-MM-DD directory
     
     Args:
-        csv_path: Path to CSV file containing coverage report data from Cost Explorer.
+        csv_path: Path to CSV file containing coverage report data from Cost Explorer
         start_date: Analysis start date (YYYY-MM-DD)
         end_date: Analysis end date (YYYY-MM-DD)
         target_coverage: Desired RI coverage percentage
@@ -58,13 +66,12 @@ def analyze_target_coverage(
     
     Raises:
         typer.Exit: If input validation fails (dates, file existence)
-        ValueError: If instance class parsing fails
+        DateFormatError: If date format is invalid
     """
-
     # Validate dates
     try:
-        datetime.strptime(start_date, "%Y-%m-%d")
-        datetime.strptime(end_date, "%Y-%m-%d")
+        datetime.strptime(start_date, config.date_format)
+        datetime.strptime(end_date, config.date_format)
     except ValueError:
         console.print("[bold red]Error:[/bold red] Dates must be in YYYY-MM-DD format")
         raise typer.Exit(1)
@@ -82,82 +89,25 @@ def analyze_target_coverage(
         console.print(f"[bold red]Error loading CSV:[/bold red] {str(e)}")
         raise typer.Exit(1)
     
-    # Calculate total days
-    total_days = calculate_days(start_date, end_date)
-    console.print(f"Analyzing data for {total_days} days ({start_date} to {end_date})")
+    # Process instance data
+    try:
+        df_processed = process_instance_data(df, start_date, end_date)
+        total_days = df_processed['Total days'].iloc[0]  # Get the calculated total days
+        console.print(f"Analyzing data for {total_days} days ({start_date} to {end_date})")
+    except Exception as e:
+        console.print(f"[bold red]Error processing data:[/bold red] {str(e)}")
+        raise typer.Exit(1)
     
-    # Process each record and add extra columns
-    base_sizes = []
-    size_factors = []
-    est_instance_amounts = []
-    total_amounts = []
-    ri_covered_amounts = []
-    
-    for _, row in df.iterrows():
-        # Calculate (est.) Instance amount
-        est_instance_amount = row['Total running hours'] / (24 * total_days)
-        est_instance_amounts.append(est_instance_amount)
-        
-        # Determine if we should convert the instance class based on database engine
-        engine = row['Database engine']
-        should_convert = (
-            'aurora' in engine.lower() or
-            any(e in engine.lower() for e in ['mariadb', 'mysql', 'postgresql']) or
-            ('oracle' in engine.lower() and 'byol' in engine.lower())
-        )
-        
-        if should_convert:
-            try:
-                # Check if instance is smaller than medium
-                instance_class = row['Instance class']
-                if any(size in instance_class.lower() for size in ['micro', 'small', 'medium']):
-                    base_sizes.append(instance_class)
-                    size_factors.append(1.0)
-                else:
-                    base_size, size_factor = convert_instance_class(instance_class)
-                    base_sizes.append(base_size)
-                    size_factors.append(size_factor)
-            except ValueError as e:
-                console.print(f"[bold yellow]Warning:[/bold yellow] {str(e)}")
-                base_sizes.append(row['Instance class'])
-                size_factors.append(1.0)
-                continue
-        else:
-            # For other engines, use the instance class as is
-            base_sizes.append(row['Instance class'])
-            size_factors.append(1.0)
-        
-        # Calculate Total amount (double for Multi-AZ deployments)
-        total_amount = est_instance_amount * size_factor
-        if row['Deployment option'] == 'Multi-AZ':
-            total_amount *= 2
-        total_amounts.append(total_amount)
-        
-        # Calculate RI covered amount
-        ri_covered_amount = est_instance_amount * size_factor * row['Average coverage']
-        ri_covered_amounts.append(ri_covered_amount)
-    
-    # Add calculated columns to dataframe
-    df['Total days'] = total_days
-    df['(est.) Instance amount'] = est_instance_amounts
-    df['Base instance size'] = base_sizes
-    df['Instance size factor'] = size_factors
-    df['Total amount'] = total_amounts
-    df['RI covered amount'] = ri_covered_amounts
-    
-    # Add region codes
-    df['region_code'] = df['Region'].apply(get_region_name_code_mapping)
-
-    # Create pivot table
+    # Create pivot table for analysis
     pivot = pd.pivot_table(
-        df,
+        df_processed,
         values=['RI covered amount', 'Total amount'],
         index=['region_code', 'Database engine', 'Base instance size'],
         aggfunc='sum'
     )
     
     # Calculate coverage percentage by region, engine and base instance size
-    detailed_coverage = df.groupby(['region_code', 'Database engine', 'Base instance size']).agg({
+    detailed_coverage = df_processed.groupby(['region_code', 'Database engine', 'Base instance size']).agg({
         'RI covered amount': 'sum',
         'Total amount': 'sum'
     })
@@ -165,15 +115,20 @@ def analyze_target_coverage(
                                              detailed_coverage['Total amount'] * 100)
     
     # Get unique regions to organize output
-    unique_regions = df['region_code'].unique()
+    unique_regions = df_processed['region_code'].unique()
     
     # Output results to console and HTML
-    output_to_console(pivot, detailed_coverage, unique_regions, target_coverage, 
-                     start_date, end_date, total_days, ri_service_type=ri_service_type)
+    output_to_console(
+        pivot, detailed_coverage, unique_regions, target_coverage, 
+        start_date, end_date, total_days, ri_service_type=ri_service_type
+    )
     
-    output_to_html(pivot, detailed_coverage, unique_regions, target_coverage,
-                  start_date, end_date, total_days, ri_service_type=ri_service_type)
-    return df
+    output_to_html(
+        pivot, detailed_coverage, unique_regions, target_coverage,
+        start_date, end_date, total_days, ri_service_type=ri_service_type
+    )
+    
+    return df_processed
 
 @app.command()
 def ref_doc_transform(
@@ -197,10 +152,22 @@ def ref_doc_transform(
 
 @app.command()
 def analyze_cost_coverage(
-    recommendations_report: Path = typer.Option(None, help="Path to the RIs recommendations report CSV file"),
-    utilization_report: Path = typer.Option(None, help="Path to the RIs utilization report CSV file"),
-    days: int = typer.Option(30, help="Number of days for the utilization report"),
-    ri_service_type: str = typer.Option("RDS", help="Type of Reserved Instance (default: RDS)")
+    recommendations_report: Path = typer.Option(
+        None, 
+        help="Path to the RIs recommendations report CSV file"
+    ),
+    utilization_report: Path = typer.Option(
+        None, 
+        help="Path to the RIs utilization report CSV file"
+    ),
+    days: int = typer.Option(
+        config.default_analysis_days, 
+        help=f"Number of days for the utilization report (default: {config.default_analysis_days})"
+    ),
+    ri_service_type: str = typer.Option(
+        config.default_ri_service_type, 
+        help=f"Type of Reserved Instance (default: {config.default_ri_service_type})"
+    )
 ):
     """
     Analyze Reserved Instances coverage and cost metrics from AWS Cost Explorer reports.
@@ -221,8 +188,8 @@ def analyze_cost_coverage(
     Args:
         recommendations_report: Optional CSV file containing RI recommendations
         utilization_report: Optional CSV file showing current RI utilization
-        days: Number of days covered by the utilization report (default: 30)
-        ri_service_type: Type of Reserved Instance to analyze (default: RDS)
+        days: Number of days covered by the utilization report
+        ri_service_type: Type of Reserved Instance to analyze
     
     Returns:
         CoverageResult object containing coverage percentages and cost metrics
@@ -242,8 +209,10 @@ def analyze_cost_coverage(
     else:
         console.print("[bold yellow]Warning:[/bold yellow] No recommendations report provided. Assuming no On-Demand spend.")
         # Create empty DataFrame with required columns
-        recommendations_df = pd.DataFrame(columns=['Region', 'Database engine', 'Upfront cost', 
-                                                 'Recurring monthly cost', 'Estimated savings'])
+        recommendations_df = pd.DataFrame(columns=[
+            'Region', 'Database engine', 'Upfront cost', 'Term',
+            'Recurring monthly cost', 'Estimated savings'
+        ])
     
     # Load utilization report if exists
     if utilization_report:
@@ -258,88 +227,14 @@ def analyze_cost_coverage(
         # Create empty DataFrame with required columns
         utilization_df = pd.DataFrame(columns=['Region', 'Database engine', 'On-Demand cost equivalent'])
     
-    # Add RegionCode column to recommendations dataframe if not empty
-    if not recommendations_df.empty:
-        recommendations_df['RegionCode'] = recommendations_df['Region'].apply(get_region_name_code_mapping)
-        # consolidate 30 on-demand cost equivalent.
-        recommendations_df['On-Demand cost equivalent'] = (
-            recommendations_df['Upfront cost'] / (12 * recommendations_df['Term'].astype(int)) + 
-            recommendations_df['Recurring monthly cost'] + 
-            recommendations_df['Estimated savings']
-        ) * 12 / 365 * 30
-    else:
-        recommendations_df['RegionCode'] = pd.Series(dtype='str')
-        recommendations_df['On-Demand cost equivalent'] = pd.Series(dtype='float64')
-    
-    # Process utilization dataframe if not empty
-    if not utilization_df.empty:
-        utilization_df['RegionCode'] = utilization_df['Region'].apply(get_region_name_code_mapping)
-    else:
-        utilization_df['RegionCode'] = pd.Series(dtype='str')
-    
-    # Calculate coverage metrics
-    from ri_coverage_analytics.coverage_result import CoverageResult
-    
-    # Calculate overall coverage
-    total_ri_cost = utilization_df['On-Demand cost equivalent'].sum()
-    total_od_cost = recommendations_df['On-Demand cost equivalent'].sum()
-    overall_coverage = total_ri_cost / (total_ri_cost + total_od_cost) * 100
-    
-    # Calculate coverage per region
-    region_coverage = {}
-    for region in set(utilization_df['RegionCode'].unique()).union(recommendations_df['RegionCode'].unique()):
-        region_ri_cost = utilization_df[utilization_df['RegionCode'] == region]['On-Demand cost equivalent'].sum()
-        region_od_cost = recommendations_df[recommendations_df['RegionCode'] == region]['On-Demand cost equivalent'].sum()
-        if region_ri_cost + region_od_cost > 0:
-            region_coverage[region] = region_ri_cost / (region_ri_cost + region_od_cost) * 100
-        else:
-            region_coverage[region] = 0.0
-    
-    # Calculate coverage per database engine
-    engine_coverage = {}
-    for engine in set(utilization_df['Database engine'].unique()).union(recommendations_df['Database engine'].unique()):
-        engine_ri_cost = utilization_df[utilization_df['Database engine'] == engine]['On-Demand cost equivalent'].sum()
-        engine_od_cost = recommendations_df[recommendations_df['Database engine'] == engine]['On-Demand cost equivalent'].sum()
-        if engine_ri_cost + engine_od_cost > 0:
-            engine_coverage[engine] = engine_ri_cost / (engine_ri_cost + engine_od_cost) * 100
-        else:
-            engine_coverage[engine] = 0.0
-    
-    # Calculate costs per region
-    ri_cost_per_region = {
-        region: utilization_df[utilization_df['RegionCode'] == region]['On-Demand cost equivalent'].sum()
-        for region in region_coverage.keys()
-    }
-    od_cost_per_region = {
-        region: recommendations_df[recommendations_df['RegionCode'] == region]['On-Demand cost equivalent'].sum()
-        for region in region_coverage.keys()
-    }
-
-    # Calculate costs per database engine
-    ri_cost_per_engine = {
-        engine: utilization_df[utilization_df['Database engine'] == engine]['On-Demand cost equivalent'].sum()
-        for engine in engine_coverage.keys()
-    }
-    od_cost_per_engine = {
-        engine: recommendations_df[recommendations_df['Database engine'] == engine]['On-Demand cost equivalent'].sum()
-        for engine in engine_coverage.keys()
-    }
-
-    # Create coverage result with all cost information
-    coverage_result = CoverageResult(
-        overall_ri_coverage=overall_coverage,
-        overall_ri_cost=total_ri_cost,
-        overall_od_cost=total_od_cost,
-        ri_coverage_per_region=region_coverage,
-        ri_cost_per_region=ri_cost_per_region,
-        od_cost_per_region=od_cost_per_region,
-        ri_coverage_per_database_engine=engine_coverage,
-        ri_cost_per_database_engine=ri_cost_per_engine,
-        od_cost_per_database_engine=od_cost_per_engine
-    )
+    # Calculate coverage metrics using the extracted functionality
+    try:
+        coverage_result = calculate_coverage_metrics(recommendations_df, utilization_df, days)
+    except Exception as e:
+        console.print(f"[bold red]Error calculating coverage metrics:[/bold red] {str(e)}")
+        raise typer.Exit(1)
     
     # Generate reports
-    from ri_coverage_analytics.coverage_report import output_picture_format
     output_picture_format(coverage_result, ri_service_type=ri_service_type)
     
     console.print(f"[bold green]Analysis completed for {days} days of utilization data[/bold green]")
@@ -347,6 +242,16 @@ def analyze_cost_coverage(
     return coverage_result
 
 def main():
+    """Entry point function for the Reserved Instance coverage analytics tool.
+    
+    This function serves as the application entry point and launches the Typer
+    command-line interface with all available commands:
+    - analyze_target_coverage: Analyze and recommend changes to reach target coverage
+    - ref_doc_transform: Convert web documentation to markdown format
+    - analyze_cost_coverage: Analyze RI cost coverage based on AWS Cost Explorer reports
+    
+    The function is called when the script is run directly (not imported).
+    """
     app()
 
 if __name__ == "__main__":
