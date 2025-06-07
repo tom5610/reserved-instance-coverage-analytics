@@ -107,7 +107,7 @@
 
             <h1>RDS Reserved Instance Coverage Analysis</h1>
             <div class="analysis-period">
-                Analysis period: 2025-04-20 to 2025-05-19 (30 days)
+                Analysis period: 2025-01-01 to 2025-01-31 (31 days)
             </div>
     
 
@@ -136,25 +136,31 @@
       <th>Aurora PostgreSQL</th>
       <th>db.r6g.large</th>
       <td>0.0</td>
-      <td>32.0</td>
+      <td>31.0</td>
     </tr>
     <tr>
       <th>eu-west-1</th>
       <th>Aurora PostgreSQL</th>
       <th>db.r6g.large</th>
       <td>0.0</td>
-      <td>64.0</td>
+      <td>61.9</td>
     </tr>
     <tr>
       <th>us-east-1</th>
       <th>Aurora PostgreSQL</th>
       <th>db.r6g.large</th>
-      <td>16.0</td>
-      <td>16.0</td>
+      <td>15.5</td>
+      <td>15.5</td>
     </tr>
   </tbody>
 </table>
 <h2>Coverage Percentage by Region and Instance Size</h2>
+
+        <div style="margin: 1em 0; padding: 0.8em; background-color: #f8f9fa; border-left: 4px solid #6c757d; font-size: 0.95em;">
+            <p><strong>Note about 'Required Change' column:</strong> Positive values indicate the number of instances to <em>purchase</em> to reach the target coverage. 
+            Negative values indicate instances that can be <em>reduced</em> when Reserved Instances are due for renewal.</p>
+        </div>
+    
 <h3>Region: eu-west-1</h3>
 <h4>Database Engine: Aurora PostgreSQL</h4>
 <table border="1" class="dataframe coverage-table">
@@ -169,7 +175,7 @@
   <tbody>
     <tr>
       <td>db.r6g.large</td>
-      <td>64.0</td>
+      <td>61.935484</td>
       <td>0.0</td>
       <td>0.0%</td>
     </tr>
@@ -177,7 +183,7 @@
 </table>
 
                 <div class="recommendations">
-                    <h4>Recommendations for eu-west-1 - Aurora PostgreSQL (Target: 80.0% coverage)</h4>
+                    <h4>Recommendations for eu-west-1 - Aurora PostgreSQL (Target: 85.0% coverage)</h4>
             
 <table border="1" class="dataframe recommendations-table">
   <thead>
@@ -194,8 +200,8 @@
       <td>db.r6g.large</td>
       <td>0.0%</td>
       <td>0.0</td>
-      <td>64.0</td>
-      <td><span class="positive-change">+51.20</span></td>
+      <td>61.9</td>
+      <td><span class="positive-change">+52.65</span></td>
     </tr>
   </tbody>
 </table>
@@ -214,7 +220,7 @@
   <tbody>
     <tr>
       <td>db.r6g.large</td>
-      <td>32.0</td>
+      <td>30.967742</td>
       <td>0.0</td>
       <td>0.0%</td>
     </tr>
@@ -222,7 +228,7 @@
 </table>
 
                 <div class="recommendations">
-                    <h4>Recommendations for ap-southeast-2 - Aurora PostgreSQL (Target: 80.0% coverage)</h4>
+                    <h4>Recommendations for ap-southeast-2 - Aurora PostgreSQL (Target: 85.0% coverage)</h4>
             
 <table border="1" class="dataframe recommendations-table">
   <thead>
@@ -239,8 +245,8 @@
       <td>db.r6g.large</td>
       <td>0.0%</td>
       <td>0.0</td>
-      <td>32.0</td>
-      <td><span class="positive-change">+25.60</span></td>
+      <td>31.0</td>
+      <td><span class="positive-change">+26.32</span></td>
     </tr>
   </tbody>
 </table>
@@ -259,15 +265,15 @@
   <tbody>
     <tr>
       <td>db.r6g.large</td>
-      <td>16.0</td>
-      <td>16.0</td>
+      <td>15.483871</td>
+      <td>15.483871</td>
       <td>100.0%</td>
     </tr>
   </tbody>
 </table>
 
                 <div class="recommendations">
-                    <h4>Recommendations for us-east-1 - Aurora PostgreSQL (Target: 80.0% coverage)</h4>
+                    <h4>Recommendations for us-east-1 - Aurora PostgreSQL (Target: 85.0% coverage)</h4>
             
 <table border="1" class="dataframe recommendations-table">
   <thead>
@@ -283,9 +289,9 @@
     <tr>
       <td>db.r6g.large</td>
       <td>100.0%</td>
-      <td>16.0</td>
-      <td>16.0</td>
-      <td><span class="negative-change">-3.20</span></td>
+      <td>15.5</td>
+      <td>15.5</td>
+      <td><span class="negative-change">-2.32</span></td>
     </tr>
   </tbody>
 </table>
