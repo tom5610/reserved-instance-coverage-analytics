@@ -17,7 +17,21 @@ def output_to_console(
     total_days: int,
     ri_service_type: str = "RDS"
 ) -> None:
-    """Output analysis results to console using Rich formatting"""
+    """Output reserved instance coverage analysis results to console using Rich formatting.
+    
+    Parameters:
+        pivot: DataFrame containing pivot table data of reserved instance coverage
+        detailed_coverage: DataFrame with detailed coverage information by region and instance type
+        unique_regions: List of unique AWS regions in the dataset
+        target_coverage: Target percentage for reserved instance coverage
+        start_date: Start date of the analysis period
+        end_date: End date of the analysis period
+        total_days: Number of days in the analysis period
+        ri_service_type: AWS service type for reserved instances (default: "RDS")
+        
+    Returns:
+        None: Results are printed to the console
+    """
     console.print("\n[bold green]Pivot Table by Region, Database Engine, and Base Instance Size:[/bold green]")
     formatted_pivot = pivot.round(1)
     console.print(formatted_pivot)
@@ -96,6 +110,25 @@ def output_to_html(
     total_days: int,
     ri_service_type: str = "RDS"
 ) -> None:
+    """Generate and save HTML report for reserved instance coverage analysis.
+    
+    This function creates a comprehensive HTML report with formatted tables and 
+    recommendations based on the coverage analysis data. The report is saved to the
+    reports directory with a timestamp in the folder name.
+    
+    Parameters:
+        pivot: DataFrame containing pivot table data of reserved instance coverage
+        detailed_coverage: DataFrame with detailed coverage information by region and instance type
+        unique_regions: List of unique AWS regions in the dataset
+        target_coverage: Target percentage for reserved instance coverage
+        start_date: Start date of the analysis period
+        end_date: End date of the analysis period
+        total_days: Number of days in the analysis period
+        ri_service_type: AWS service type for reserved instances (default: "RDS")
+        
+    Returns:
+        None: Report is saved to disk and path is printed to console
+    """
     # Create reports directory structure
     reports_dir = Path.cwd() / "reports"
     reports_dir.mkdir(exist_ok=True)
@@ -112,7 +145,6 @@ def output_to_html(
     
     # Set hardcoded HTML output filename
     html_output = report_dir / "ri-target-coverage-report.html"
-    """Generate and save HTML output with proper formatting"""
     html_parts = []
     
     # Start with the HTML template
