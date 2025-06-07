@@ -104,10 +104,10 @@ uv run main analyze-target-coverage \
 Parameters:
 
 - `csv_path`: Path to the CSV file with instance data (required)
-- `--start-date`: Start date in YYYY-MM-DD format (required)
-- `--end-date`: End date in YYYY-MM-DD format (required)
-- `--target-coverage`: Target coverage percentage (default: 80%)
-- `--ri-service-type`: Type of Reserved Instance to analyze (default: RDS)
+- `--start-date`: Start date in YYYY-MM-DD format (optional)
+- `--end-date`: End date in YYYY-MM-DD format (optional)
+- `--target-coverage`: Target coverage percentage (optional, default: 80%)
+- `--ri-service-type`: Type of Reserved Instance to analyze (optional, default: RDS, the only supported type)
 
 ### 2. analyze-cost-coverage
 
@@ -122,14 +122,13 @@ Parameters:
 
 - `--recommendations-report`: Path to the RI recommendations report CSV (optional)
 - `--utilization-report`: Path to the RI utilization report CSV (optional)
-- `--days`: Number of days for the utilization report (default: 30)
-- `--ri-service-type`: Type of Reserved Instance to analyze (default: RDS)
+- `--days`: Number of days for the utilization report (optional, default: 30)
+- `--ri-service-type`: Type of Reserved Instance to analyze (optional, default: RDS)
 
 
 ### 3. ref-doc-transform
 
 > For RI coverage analytics, you don't need this commands. It's for downloading webpage, converting to markdown, and use it during ***ai coding*** when we need some reference from dev guide. 
-Downloads and converts AWS documentation to markdown format for offline reference. 
 
 ```bash
 ri-coverage-analytics ref-doc-transform \
@@ -229,4 +228,4 @@ MIT License
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to raise GitHub issue(s), or submit a Pull Request.
