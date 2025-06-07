@@ -1,10 +1,8 @@
 # Amazon Reserved Instance Coverage Analytics
 
-> **⚠️ DISCLAIMER**: This tool provides analysis and recommendations for Amazon RDS Reserved Instance (RI) purchases. While I strive for accuracy, users should carefully verify all recommendations before making any RI purchase decisions. You are responsible for your own RI purchase decisions and their financial implications. Highly recommended to review AWS documentation and consult with your AWS Account Teams before making RI commitments.
+> **⚠️ DISCLAIMER**: This tool provides coverage analysis and target coverage recommendations for Amazon RDS Reserved Instance (RI). While I strive to achieve good accuracy, please carefully verify all recommendations and verify your RDS RIs purchase via [Accessing reservation recommendations](https://docs.aws.amazon.com/cost-management/latest/userguide/ri-recommendations.html). Please reach out to AWS Support, or your AWS Account Team for further support. 
 
-A command-line tool for analyzing Amazon RDS Reserved Instance (RI) coverage based on AWS Cost Explorer reports.
-
-Besides the README.md, you may find more guidance on the blog - [Cost Coverage Analysis for Amazon RDS Reserved Instances](https://medium.com/p/c7fe13009eba)
+> Besides the README.md, you may find more guidance on the blog - [Cost Coverage Analysis for Amazon RDS Reserved Instances](https://medium.com/p/c7fe13009eba). To learn more about [Reserved DB Instances for Amazon RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithReservedDBInstances.html)
 
 ## Overview
 
@@ -209,22 +207,9 @@ Each report includes:
 - **BeautifulSoup**: HTML parsing
 - **html2text**: HTML to markdown conversion
 
-## Code Review Summary
-
-The codebase is well-structured with clear separation of concerns:
-
-- **main.py**: Contains the CLI commands and high-level workflow
-- **utils.py**: Provides utility functions for calculations and data transformations
-- **output_format.py**: Handles different output formats (console, HTML)
-- **coverage_result.py**: PyDantic class to store coverage analysis result.
-- **coverage_report.py**: Handles coverage generation (HTML)
-- **reference_doc_transformer.py**: Manages web page transformation to markdown
-
-The implementation follows best practices with comprehensive error handling, clear documentation, and modular design. The code is extensible for future enhancements such as additional output formats or more sophisticated analysis techniques.
-
 ## License
 
-MIT License
+[MIT License](./LICENSE)
 
 ## Contributing
 
