@@ -151,7 +151,22 @@ def output_picture_format(result: CoverageResult, output_dir: Path = None, ri_se
     print(f"Report directory: {report_dir}")
 
 def generate_html_report(result, timestamp, output_dir, overall_coverage, ri_service_type="RDS"):
-    """Generate HTML report with embedded charts."""
+    """Generate HTML report with embedded charts for reserved instance coverage analysis.
+    
+    This function creates an HTML report that includes charts and visualizations for 
+    reserved instance coverage analysis. The report includes overall coverage, coverage 
+    by region, and coverage by database engine.
+    
+    Parameters:
+        result: CoverageResult object containing the analysis data
+        timestamp: String timestamp for file naming consistency
+        output_dir: Path object for the directory where charts are saved
+        overall_coverage: Float representing the overall RI coverage percentage
+        ri_service_type: AWS service type for reserved instances (default: "RDS")
+        
+    Returns:
+        str: Complete HTML content for the report as a string
+    """
     
     html_template = f"""
     <!DOCTYPE html>

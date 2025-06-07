@@ -1,34 +1,59 @@
 from datetime import datetime
 import re
+from typing import Tuple
+import functools
+
+class RICoverageError(Exception):
+    """Base exception class for RI coverage analytics errors."""
+    pass
+
+class DateFormatError(RICoverageError):
+    """Exception raised when date format is invalid."""
+    pass
+
+class RegionMappingError(RICoverageError):
+    """Exception raised when region mapping fails."""
+    pass
+
+class InstanceClassError(RICoverageError):
+    """Exception raised when instance class parsing fails."""
+    pass
 
 def calculate_days(start_date: str, end_date: str) -> int:
     """
-    Return the days between start-date and end-date inclusively.
+    Calculate the number of days between start-date and end-date inclusively.
     
     Args:
-        start_date (str): Start date in format 'YYYY-MM-DD'
-        end_date (str): End date in format 'YYYY-MM-DD'
+        start_date: Start date in format 'YYYY-MM-DD'
+        end_date: End date in format 'YYYY-MM-DD'
         
     Returns:
-        int: Number of days between start_date and end_date (inclusive)
-    """
-    start = datetime.strptime(start_date, "%Y-%m-%d")
-    end = datetime.strptime(end_date, "%Y-%m-%d")
-    delta = end - start
-    return delta.days + 1  # +1 to make it inclusive
-
-def get_region_name_code_mapping(region_name: str) -> str:
-    """
-    Map a region name to its AWS region code.
-    
-    Args:
-        region_name (str): The AWS region name (e.g. 'US East (N. Virginia)')
-        
-    Returns:
-        str: The AWS region code (e.g. 'us-east-1')
+        Number of days between start_date and end_date (inclusive)
         
     Raises:
-        ValueError: If the region name is not found in the mapping
+        DateFormatError: If either date string is not in the required format
+    """
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        delta = end - start
+        return delta.days + 1  # +1 to make it inclusive
+    except ValueError:
+        raise DateFormatError(f"Invalid date format. Both dates must be in YYYY-MM-DD format: start_date='{start_date}', end_date='{end_date}'")
+
+@functools.lru_cache(maxsize=128)
+def get_region_name_code_mapping(region_name: str) -> str:
+    """
+    Map a region name to its AWS region code with caching for performance.
+    
+    Args:
+        region_name: The AWS region name (e.g. 'US East (N. Virginia)')
+        
+    Returns:
+        The AWS region code (e.g. 'us-east-1')
+        
+    Raises:
+        RegionMappingError: If the region name is not found in the mapping
     """
     # Replace 'EU ' with 'Europe ' if present at the start
     if region_name.startswith('EU '):
@@ -74,49 +99,78 @@ def get_region_name_code_mapping(region_name: str) -> str:
     try:
         return region_mapping[region_name]
     except KeyError:
-        raise ValueError(f"Unknown region name: {region_name}")
+        # Attempt a case-insensitive match as fallback
+        region_name_lower = region_name.lower()
+        for key, value in region_mapping.items():
+            if key.lower() == region_name_lower:
+                return value
+                
+        raise RegionMappingError(f"Unknown region name: {region_name}")
 
-def convert_instance_class(instance_class: str) -> tuple:
+def convert_instance_class(instance_class: str) -> Tuple[str, float]:
     """
-    Calculate and return (Base instance size, Instance size factor).
+    Calculate and return the base instance size and size factor.
+    
+    This function normalizes instance sizes relative to 'large' instances.
+    For example, xlarge = 2x large, 2xlarge = 4x large, etc.
     
     Args:
-        instance_class (str): Instance class in format "db.{instance_family}.{instance_size}"
+        instance_class: Instance class in format "db.{instance_family}.{instance_size}"
         
     Returns:
-        tuple: (Base instance size, Instance size factor)
+        A tuple containing:
             - Base instance size: String in format "db.{instance_family}.large"
-            - Instance size factor: Float representing the size factor relative to large
+            - Instance size factor: Float representing the size multiplier relative to large
+            
+    Raises:
+        InstanceClassError: If the instance class format is invalid or size is unknown
     """
+    # Early validation of input
+    if not instance_class or not isinstance(instance_class, str):
+        raise InstanceClassError(f"Instance class must be a non-empty string, got: {type(instance_class)}")
+        
     # Extract instance family and size
     pattern = r"db\.([a-z0-9]+)\.([a-z0-9]+)"
-    match = re.match(pattern, instance_class)
+    match = re.match(pattern, instance_class.strip())
     
     if not match:
-        raise ValueError(f"Invalid instance class format: {instance_class}")
+        raise InstanceClassError(
+            f"Invalid instance class format: {instance_class}. Expected format: db.{{family}}.{{size}}")
     
     family, size = match.groups()
     base_instance = f"db.{family}.large"
     
+    # Normalize size to lowercase for consistent comparison
+    size_lower = size.lower()
+    
     # Calculate size factor
-    if size == "large":
-        factor = 1.0
-    elif size == "xlarge":
-        factor = 2.0
-    elif "xlarge" in size:
-        # Extract the multiplier before 'xlarge'
-        multiplier = size.split("xlarge")[0]
-        if multiplier:
-            factor = float(multiplier) * 2.0
-        else:
+    try:
+        if size_lower == "large":
+            factor = 1.0
+        elif size_lower == "xlarge":
             factor = 2.0
-    elif size == "medium":
-        factor = 0.5
-    elif size == "small":
-        factor = 0.25
-    elif size == "micro":
-        factor = 0.125
-    else:
-        raise ValueError(f"Unknown instance size: {size}")
+        elif "xlarge" in size_lower:
+            # Extract the multiplier before 'xlarge'
+            multiplier_str = size_lower.split("xlarge")[0]
+            if multiplier_str:
+                try:
+                    factor = float(multiplier_str) * 2.0
+                except ValueError:
+                    raise InstanceClassError(
+                        f"Invalid multiplier in instance class: {instance_class}. Cannot convert '{multiplier_str}' to number.")
+            else:
+                factor = 2.0
+        elif size_lower == "medium":
+            factor = 0.5
+        elif size_lower == "small":
+            factor = 0.25
+        elif size_lower == "micro":
+            factor = 0.125
+        else:
+            raise InstanceClassError(f"Unknown instance size: {size} in class {instance_class}")
+    except Exception as e:
+        if isinstance(e, InstanceClassError):
+            raise
+        raise InstanceClassError(f"Error processing instance class {instance_class}: {str(e)}")
     
     return base_instance, factor
